@@ -1,13 +1,19 @@
 import { app, BrowserWindow, Menu, dialog, MenuItem } from 'electron';
 import { join } from 'path';
 import { registerIPCHandlers, registerIPCEvents } from './ipc.js';
+import { getSavedState, saveState, registerFileAssociation } from './window-state.js';
 
 let mainWindow: BrowserWindow | null = null;
 
-function createWindow(): void {
+async function createWindow(): Promise<void> {
+  // Load saved window state
+  const savedState = await getSavedState();
+
   mainWindow = new BrowserWindow({
-    width: 1024,
-    height: 768,
+    x: savedState.x,
+    y: savedState.y,
+    width: savedState.width,
+    height: savedState.height,
     minWidth: 800,
     minHeight: 600,
     title: 'PDF Editor',
@@ -17,6 +23,11 @@ function createWindow(): void {
       nodeIntegration: false,
     },
   });
+
+  // Restore maximized state
+  if (savedState.maximized) {
+    mainWindow.maximize();
+  }
 
   // Load the renderer
   if (process.env.VITE_DEV_SERVER_URL) {
@@ -29,6 +40,15 @@ function createWindow(): void {
   if (process.env.NODE_ENV === 'development') {
     mainWindow.webContents.openDevTools();
   }
+
+  // Save window state on resize and close
+  mainWindow.on('resize', () => {
+    saveState(mainWindow!);
+  });
+
+  mainWindow.on('close', () => {
+    saveState(mainWindow!);
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
@@ -49,7 +69,6 @@ function createMenu(): void {
               filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
             }).then((result) => {
               if (!result.canceled && result.filePaths.length > 0) {
-                // Will be wired to IPC in Plan 01-02
                 console.log('Open file:', result.filePaths[0]);
               }
             }).catch((err) => {
@@ -61,7 +80,6 @@ function createMenu(): void {
           label: 'Save',
           accelerator: 'CmdOrCtrl+S',
           click: (_menuItem: MenuItem, _event: unknown): void => {
-            // Will be wired to IPC in Plan 01-02
             console.log('Save triggered');
           },
         },
@@ -73,7 +91,6 @@ function createMenu(): void {
               filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
             }).then((result) => {
               if (!result.canceled && result.filePath) {
-                // Will be wired to IPC in Plan 01-02
                 console.log('Save As path:', result.filePath);
               }
             }).catch((err) => {
@@ -98,8 +115,7 @@ function createMenu(): void {
 }
 
 // Handle second-instance event (Windows single-instance behavior)
-app.on('second-instance', (_event, commandLine) => {
-  // Someone tried to run a second instance
+app.on('second-instance', async (_event, commandLine) => {
   if (mainWindow) {
     if (mainWindow.isMinimized()) mainWindow.restore();
     mainWindow.focus();
@@ -109,19 +125,24 @@ app.on('second-instance', (_event, commandLine) => {
   const filePath = commandLine[commandLine.length - 1];
   if (filePath && mainWindow) {
     console.log('Second instance open:', filePath);
+    // Will be wired to IPC in Plan 01-03
   }
 });
 
 // Handle macOS open-file event
-app.on('open-file', (_event, filePath) => {
+app.on('open-file', async (_event, filePath) => {
   if (mainWindow) {
     console.log('Open file event:', filePath);
+    // Will be wired to IPC in Plan 01-03
   }
 });
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+  // Register file association (non-blocking)
+  registerFileAssociation();
+
   createMenu();
-  createWindow();
+  await createWindow();
 
   // Register IPC handlers after window creation
   if (mainWindow) {
@@ -132,14 +153,12 @@ app.whenReady().then(() => {
   }
 
   app.on('activate', () => {
-    // On macOS, re-create window when dock icon is clicked and no windows open
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
     }
   });
 });
 
-// Quit when all windows are closed, except on macOS
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
