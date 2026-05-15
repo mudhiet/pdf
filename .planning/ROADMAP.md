@@ -12,7 +12,7 @@ Build a free, desktop PDF viewer and editor for Windows using Electron and JavaS
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Document Lifecycle** - Electron shell, IPC bridge, file I/O, save/restore, Windows file associations
+- [x] **Phase 1: Foundation & Document Lifecycle** — Shipped 2026-05-15 → [archive](milestones/v1-ROADMAP.md)
 - [ ] **Phase 2: Core Viewer** - PDF.js rendering, zoom/pan, page navigation, thumbnail sidebar
 - [ ] **Phase 3: Search, Print & Keyboard** - Text search with CMap, print via Electron, keyboard shortcuts
 - [ ] **Phase 4: Multi-tab Interface** - Tab bar, multiple document management, tab switching
@@ -22,21 +22,6 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [ ] **Phase 8: Text Editing** - Text selection, overlay approach (cross-out old text, draw new)
 
 ## Phase Details
-
-### Phase 1: Foundation & Document Lifecycle
-**Goal**: Users can open, save, and manage PDF documents with the application integrated into Windows
-**Depends on**: Nothing (first phase)
-**Requirements**: GEN-01, GEN-03
-**Success Criteria** (what must be TRUE):
-  1. User can open a PDF file via File → Open dialog, drag-and-drop, or double-click from Windows Explorer
-  2. User can save a PDF (Save) and save a copy (Save As) to a chosen location on disk
-  3. Double-clicking a PDF file in Windows Explorer opens it in the application
-**Plans**: 3 plans
-
-Plans:
-- [x] 01-01: Electron shell setup — scaffold project with Electron Forge, Squirrel.Windows packaging, preload script with contextIsolation, main/renderer process structure
-- [x] 01-02: IPC bridge — establish invoke/handle and send/on channels between main and renderer processes; define channel contract for document lifecycle operations
-- [x] 01-03: File I/O layer — implement file dialog (open/save/saveAs), drag-and-drop handling, Windows file association registration, document open/save flow with raw byte management in main process
 
 ### Phase 2: Core Viewer
 **Goal**: Users can open and view PDF documents with smooth rendering, zoom, and page navigation

@@ -1,7 +1,11 @@
-﻿# Requirements: PDF Editor
+# Requirements Archive: v1
 
+**Version:** v1
 **Defined:** 2026-05-15
-**Core Value:** Users can edit PDF documents (text, forms, pages) without paying for a subscription.
+**Shipped:** 2026-05-15
+**Milestone:** v1 — Foundation & Document Lifecycle
+
+---
 
 ## v1 Requirements
 
@@ -41,9 +45,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### General
 
-- [x] **GEN-01**: User can save PDFs (Save and Save As)
+- [x] **GEN-01**: User can save PDFs (Save and Save As) — *Validated: implemented in file-io.ts, 2/2 UAT tests passed*
 - [ ] **GEN-02**: User can undo/redo all editing operations
-- [x] **GEN-03**: Application respects Windows file associations (double-click PDF to open)
+- [x] **GEN-03**: Application respects Windows file associations (double-click PDF to open) — *Validated: registry registration + second-instance handling, 2/2 UAT tests passed*
 
 ## v2 Requirements
 
@@ -105,6 +109,10 @@ Requirements for initial release. Each maps to roadmap phases.
 - Mapped to phases: 20
 - Unmapped: 0
 
+**v1 shipped:** 2/2 applicable requirements complete (GEN-01, GEN-03)
+**v1 pending:** 18 requirements deferred to future milestones
+
 ---
-*Requirements defined: 2026-05-15*
-*Last updated: 2026-05-15 after roadmap creation*
+
+*Requirements archived: 2026-05-15*
+*Active requirements file deleted — next milestone starts with /gsd-new-milestone*
