@@ -47,7 +47,10 @@ document.body.addEventListener('drop', async (event: DragEvent) => {
     }
 
     try {
-      await invoke<unknown>('doc:open', filePath);
+      const result = await invoke<unknown>('doc:open', filePath);
+      if (result && typeof result === 'object' && 'error' in result) {
+        console.error('Failed to open dropped file:', (result as { error: string }).error);
+      }
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to open file';
       console.error('Error opening dropped file:', message);

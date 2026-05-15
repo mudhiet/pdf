@@ -10,11 +10,6 @@ import {
   DIALOG_SAVE_FILE,
   WIN_STATE_SAVE,
   WIN_STATE_RESTORE,
-  DOC_OPEN_RESPONSE,
-  DOC_SAVE_RESPONSE,
-  DOC_SAVE_AS_RESPONSE,
-  DOC_CLOSE_RESPONSE,
-  WIN_STATE_RESTORE_RESPONSE,
 } from '../shared/channels.js';
 import {
   openFile,
@@ -28,10 +23,37 @@ import {
  * Validate a save path to prevent writes to arbitrary filesystem locations.
  * Returns { valid: true, path: string } or { valid: false, error: string }.
  */
-async function validateSavePath(rawPath: string): Promise<{ valid: true; path: string } | { valid: false; error: string }> {
+async function validateSavePath(rawPath: string): Promise<{ valid: true; path: string } | { valid: false, error: string }> {
   if (!rawPath || typeof rawPath !== 'string') {
     return { valid: false, error: 'Invalid file path.' };
   }
+
+  const normalized = resolve(rawPath);
+
+  if (normalized.endsWith('.pdf') !== true) {
+    return { valid: false, error: 'Only PDF files can be saved.' };
+  }
+
+  const dir = dirname(normalized);
+
+  if (dir === normalized) {
+    return { valid: false, error: 'Cannot save at filesystem root.' };
+  }
+
+  // Prevent writes to system directories
+  const systemRoot = process.env.SystemRoot;
+  if (systemRoot && normalized.toLowerCase().startsWith(systemRoot.toLowerCase())) {
+    return { valid: false, error: 'Cannot save to system directories.' };
+  }
+
+  try {
+    await access(dir, constants.W_OK);
+  } catch {
+    return { valid: false, error: 'Cannot write to the selected location. Check permissions.' };
+  }
+
+  return { valid: true, path: normalized };
+}
 
   const normalized = resolve(rawPath);
 
@@ -87,8 +109,14 @@ export function registerIPCHandlers(mainWindow: BrowserWindow): void {
   });
 
   ipcMain.handle(DOC_SAVE_AS, async (): Promise<IpcResult> => {
-    // Placeholder: will open save dialog and save in Plan 01-03 Task 1
-    return { success: true };
+    const result = await dialog.showSaveDialog(mainWindow, {
+      title: 'Save PDF As',
+      filters: [{ name: 'PDF Files', extensions: ['pdf'] }],
+    });
+    if (result.canceled || !result.filePath) {
+      return { success: false };
+    }
+    return { success: true, data: result.filePath };
   });
 
   ipcMain.handle(DOC_CLOSE, async (): Promise<IpcResult> => {
@@ -110,27 +138,6 @@ export function registerIPCHandlers(mainWindow: BrowserWindow): void {
   });
 
   ipcMain.handle(WIN_STATE_RESTORE, async (): Promise<IpcResult> => {
-    return {};
-  });
-
-  // Legacy response channels (for backward compatibility with preload)
-  ipcMain.handle(DOC_OPEN_RESPONSE, async (): Promise<IpcResult> => {
-    return { error: 'Not implemented' };
-  });
-
-  ipcMain.handle(DOC_SAVE_RESPONSE, async (): Promise<IpcResult> => {
-    return { success: true };
-  });
-
-  ipcMain.handle(DOC_SAVE_AS_RESPONSE, async (): Promise<IpcResult> => {
-    return { success: true };
-  });
-
-  ipcMain.handle(DOC_CLOSE_RESPONSE, async (): Promise<IpcResult> => {
-    return { success: true };
-  });
-
-  ipcMain.handle(WIN_STATE_RESTORE_RESPONSE, async (): Promise<IpcResult> => {
     return {};
   });
 }

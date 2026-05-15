@@ -13,14 +13,8 @@ const INVOKE_CHANNELS: ChannelNames[] = [
   'win:state:restore',
 ];
 
-// Handle channels: main sends response to renderer
-const HANDLE_CHANNELS: ChannelNames[] = [
-  'doc:open:response',
-  'doc:save:response',
-  'doc:saveAs:response',
-  'doc:close:response',
-  'win:state:restore:response',
-];
+// Response channels: main sends responses to renderer invoke calls
+// These are handled automatically by ipcRenderer.invoke() — no separate registration needed.
 
 // Send/On channels: fire-and-forget events from main to renderer
 const EVENT_CHANNELS: ChannelNames[] = [
@@ -37,20 +31,6 @@ contextBridge.exposeInMainWorld('electron', {
       throw new Error(`Invalid invoke channel: ${channel}`);
     }
     return ipcRenderer.invoke(channel, ...args);
-  },
-
-  handle: (channel: ChannelNames, listener: (...args: unknown[]) => void): void => {
-    if (!HANDLE_CHANNELS.includes(channel)) {
-      throw new Error(`Invalid handle channel: ${channel}`);
-    }
-    ipcRenderer.on(channel, listener);
-  },
-
-  send: (channel: ChannelNames, ...args: unknown[]): void => {
-    if (!EVENT_CHANNELS.includes(channel)) {
-      throw new Error(`Invalid send channel: ${channel}`);
-    }
-    ipcRenderer.send(channel, ...args);
   },
 
   on: (channel: ChannelNames, listener: (...args: unknown[]) => void): void => {

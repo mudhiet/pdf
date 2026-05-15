@@ -88,6 +88,10 @@ export async function openPDF(filePath: string): Promise<OpenResult> {
   try {
     const bytes = await fs.readFile(filePath);
 
+    if (bytes.length === 0) {
+      return { error: 'The selected file is empty.' };
+    }
+
     // Validate PDF magic bytes
     for (let i = 0; i < PDF_MAGIC_BYTES.length; i++) {
       if (bytes[i] !== PDF_MAGIC_BYTES[i]) {
@@ -122,6 +126,10 @@ export async function openPDF(filePath: string): Promise<OpenResult> {
  */
 export async function savePDF(filePath: string, base64Bytes: string): Promise<SaveResult> {
   try {
+    // Validate base64 before decoding — malformed input would produce corrupted output
+    if (!/^[A-Za-z0-9+/]*={0,2}$/.test(base64Bytes)) {
+      return { error: 'The document data is corrupted and cannot be saved.' };
+    }
     const bytes = Buffer.from(base64Bytes, 'base64');
     await fs.writeFile(filePath, bytes);
     return { success: true };
