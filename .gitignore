@@ -1,0 +1,18 @@
+.planning/
+
+# Build outputs
+dist/
+out/
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
+
+# Electron cache
+.electron/
+
+# OS files
+.DS_Store
+Thumbs.db

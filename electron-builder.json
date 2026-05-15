@@ -1,0 +1,15 @@
+{
+  "appId": "com.pditeditor.app",
+  "productName": "PDF Editor",
+  "copyright": "Copyright © 2026",
+  "buildVersion": "0.1.0",
+  "win": {
+    "target": [
+      {
+        "target": "squirrel",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "assets/icon.ico"
+  }
+}
