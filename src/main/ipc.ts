@@ -1,4 +1,6 @@
 import { ipcMain, BrowserWindow } from 'electron';
+import { resolve, dirname, extname } from 'path';
+import { access, constants } from 'fs/promises';
 import {
   DOC_OPEN,
   DOC_SAVE,
@@ -21,6 +23,36 @@ import {
   savePDF,
   closeDocument,
 } from './file-io.js';
+
+/**
+ * Validate a save path to prevent writes to arbitrary filesystem locations.
+ * Returns { valid: true, path: string } or { valid: false, error: string }.
+ */
+async function validateSavePath(rawPath: string): Promise<{ valid: true; path: string } | { valid: false; error: string }> {
+  if (!rawPath || typeof rawPath !== 'string') {
+    return { valid: false, error: 'Invalid file path.' };
+  }
+
+  const normalized = resolve(rawPath);
+
+  if (normalized.endsWith('.pdf') !== true) {
+    return { valid: false, error: 'Only PDF files can be saved.' };
+  }
+
+  const dir = dirname(normalized);
+
+  if (dir === normalized) {
+    return { valid: false, error: 'Cannot save at filesystem root.' };
+  }
+
+  try {
+    await access(dir, constants.W_OK);
+  } catch {
+    return { valid: false, error: 'Cannot write to the selected location. Check permissions.' };
+  }
+
+  return { valid: true, path: normalized };
+}
 
 interface IpcResult {
   success?: boolean;
@@ -47,7 +79,11 @@ export function registerIPCHandlers(mainWindow: BrowserWindow): void {
     if (!data?.bytes || !data?.path) {
       return { error: 'Missing bytes or path' };
     }
-    return savePDF(data.path, data.bytes);
+    const validation = await validateSavePath(data.path);
+    if (!validation.valid) {
+      return { error: validation.error };
+    }
+    return savePDF(validation.path, data.bytes);
   });
 
   ipcMain.handle(DOC_SAVE_AS, async (): Promise<IpcResult> => {

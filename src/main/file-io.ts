@@ -5,6 +5,25 @@ import { extname, dirname, basename } from 'path';
 const PDF_MAGIC_BYTES = Buffer.from('%PDF-');
 const PDF_EXTENSION = '.pdf';
 
+/**
+ * Sanitize error messages to prevent filesystem path leakage.
+ * Replaces raw OS paths with generic descriptions.
+ */
+function sanitizeError(message: string): string {
+  // Remove Windows-style paths (C:\..., \\...\...)
+  let sanitized = message.replace(/[A-Za-z]:\\(?:[^\\]*\\)*/g, '[path]');
+  // Remove Unix-style paths (/home/..., /Users/..., /var/...)
+  sanitized = sanitized.replace(/\/(?:home|Users|var|etc|tmp|opt|root)(?:\/[^\/\s]*)+/g, '[path]');
+  // Remove "ENOENT", "EACCES", "ENOSPC" and similar OS error codes
+  sanitized = sanitized.replace(/\b(ENOENT|EACCES|ENOSPC|EPERM|EEXIST|EBUSY|EINTR)\b/g, '[error-code]');
+  // Remove "no such file or directory", "permission denied" style messages with paths
+  sanitized = sanitized.replace(/no such file(?: or directory)?(?:\s*:\s*\[path\])?/gi, 'file not found');
+  sanitized = sanitized.replace(/permission denied(?:\s*:\s*\[path\])?/gi, 'access denied');
+  // Remove trailing path fragments after colons
+  sanitized = sanitized.replace(/:\s*[/\\][^\s,;)]+/g, '');
+  return sanitized.trim();
+}
+
 interface OpenResult {
   bytes?: string;
   path?: string;
@@ -83,17 +102,17 @@ export async function openPDF(filePath: string): Promise<OpenResult> {
       path: filePath,
     };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+    const rawMessage = err instanceof Error ? err.message : 'Unknown error';
 
-    if (message.includes('ENOENT') || message.includes('no such file')) {
+    if (rawMessage.includes('ENOENT') || rawMessage.includes('no such file')) {
       return { error: 'The file could not be found. It may have been moved or deleted.' };
     }
 
-    if (message.includes('EACCES') || message.includes('permission')) {
+    if (rawMessage.includes('EACCES') || rawMessage.includes('permission')) {
       return { error: 'Access denied. The file may be in use by another program or protected.' };
     }
 
-    return { error: `Failed to open the file: ${message}` };
+    return { error: `Failed to open the file. ${sanitizeError(rawMessage)}` };
   }
 }
 
@@ -107,21 +126,21 @@ export async function savePDF(filePath: string, base64Bytes: string): Promise<Sa
     await fs.writeFile(filePath, bytes);
     return { success: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
+    const rawMessage = err instanceof Error ? err.message : 'Unknown error';
 
-    if (message.includes('ENOENT') || message.includes('no such file')) {
-      return { error: `The destination folder could not be found: ${dirname(filePath)}` };
+    if (rawMessage.includes('ENOENT') || rawMessage.includes('no such file')) {
+      return { error: 'The destination folder could not be found.' };
     }
 
-    if (message.includes('EACCES') || message.includes('permission')) {
+    if (rawMessage.includes('EACCES') || rawMessage.includes('permission')) {
       return { error: 'Access denied. The file may be read-only or in use by another program.' };
     }
 
-    if (message.includes('disk full') || message.includes('ENOSPC')) {
+    if (rawMessage.includes('disk full') || rawMessage.includes('ENOSPC')) {
       return { error: 'Insufficient disk space to save the file.' };
     }
 
-    return { error: `Failed to save the file: ${message}` };
+    return { error: `Failed to save the file. ${sanitizeError(rawMessage)}` };
   }
 }
 

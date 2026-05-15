@@ -1,6 +1,7 @@
 import { app, BrowserWindow } from 'electron';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import { createHash } from 'crypto';
 
 export interface WindowState {
   x?: number;
@@ -9,6 +10,13 @@ export interface WindowState {
   height: number;
   maximized: boolean;
 }
+
+interface WindowStateFile {
+  state: WindowState;
+  hash: string;
+}
+
+const HASH_ALGORITHM = 'sha256';
 
 const DEFAULT_STATE: WindowState = {
   width: 1024,
@@ -22,19 +30,32 @@ function getStatePath(): string {
   return join(app.getPath('userData'), STATE_FILE);
 }
 
+function computeHash(state: WindowState): string {
+  const stateStr = JSON.stringify(state, null, 2);
+  return createHash(HASH_ALGORITHM).update(stateStr).digest('hex');
+}
+
+function verifyHash(state: WindowState, hash: string): boolean {
+  return computeHash(state) === hash;
+}
+
 export async function getSavedState(): Promise<WindowState> {
   try {
     const statePath = getStatePath();
     const data = await fs.readFile(statePath, 'utf-8');
-    const parsed = JSON.parse(data) as WindowState;
+    const parsed = JSON.parse(data) as WindowStateFile;
 
-    if (parsed.width && parsed.height) {
+    if (parsed.state && parsed.state.width && parsed.state.height) {
+      if (!verifyHash(parsed.state, parsed.hash)) {
+        console.warn('[window-state] Integrity check failed — state file may be tampered. Using defaults.');
+        return { ...DEFAULT_STATE };
+      }
       return {
-        x: parsed.x,
-        y: parsed.y,
-        width: parsed.width,
-        height: parsed.height,
-        maximized: parsed.maximized || false,
+        x: parsed.state.x,
+        y: parsed.state.y,
+        width: parsed.state.width,
+        height: parsed.state.height,
+        maximized: parsed.state.maximized || false,
       };
     }
   } catch {
@@ -57,8 +78,13 @@ export async function saveState(window: BrowserWindow): Promise<void> {
       maximized,
     };
 
+    const stateFile: WindowStateFile = {
+      state,
+      hash: computeHash(state),
+    };
+
     const statePath = getStatePath();
-    await fs.writeFile(statePath, JSON.stringify(state, null, 2), 'utf-8');
+    await fs.writeFile(statePath, JSON.stringify(stateFile, null, 2), 'utf-8');
   } catch {
     // Silently ignore write errors (disk full, permissions, etc.)
   }
