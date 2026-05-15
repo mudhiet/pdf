@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 Plans:
 - [x] 01-01: Electron shell setup — scaffold project with Electron Forge, Squirrel.Windows packaging, preload script with contextIsolation, main/renderer process structure
 - [x] 01-02: IPC bridge — establish invoke/handle and send/on channels between main and renderer processes; define channel contract for document lifecycle operations
-- [ ] 01-03: File I/O layer — implement file dialog (open/save/saveAs), drag-and-drop handling, Windows file association registration, document open/save flow with raw byte management in main process
+- [x] 01-03: File I/O layer — implement file dialog (open/save/saveAs), drag-and-drop handling, Windows file association registration, document open/save flow with raw byte management in main process
 
 ### Phase 2: Core Viewer
 **Goal**: Users can open and view PDF documents with smooth rendering, zoom, and page navigation
@@ -163,7 +163,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Document Lifecycle | 2/3 | In Progress | - |
+| 1. Foundation & Document Lifecycle | 3/3 | Complete | 2026-05-15 |
 | 2. Core Viewer | 0/4 | Not started | - |
 | 3. Search, Print & Keyboard | 0/3 | Not started | - |
 | 4. Multi-tab Interface | 0/3 | Not started | - |
