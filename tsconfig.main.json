@@ -12,7 +12,7 @@
     "sourceMap": true,
     "lib": ["ES2020"],
     "outDir": "out/main",
-    "rootDir": "src/main"
+    "rootDir": "src"
   },
   "include": ["src/main/**/*"],
   "exclude": ["node_modules"]

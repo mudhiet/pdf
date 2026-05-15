@@ -1,6 +1,6 @@
 import { app, BrowserWindow, Menu, dialog, MenuItem } from 'electron';
-import { pathToFileURL } from 'url';
 import { join } from 'path';
+import { registerIPCHandlers, registerIPCEvents } from './ipc.js';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -122,6 +122,14 @@ app.on('open-file', (_event, filePath) => {
 app.whenReady().then(() => {
   createMenu();
   createWindow();
+
+  // Register IPC handlers after window creation
+  if (mainWindow) {
+    registerIPCHandlers(mainWindow);
+    registerIPCEvents(mainWindow);
+    // Signal renderer that app is ready
+    mainWindow.webContents.send('app:ready');
+  }
 
   app.on('activate', () => {
     // On macOS, re-create window when dock icon is clicked and no windows open
