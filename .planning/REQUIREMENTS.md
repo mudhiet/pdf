@@ -41,9 +41,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### General
 
-- [ ] **GEN-01**: User can save PDFs (Save and Save As)
+- [x] **GEN-01**: User can save PDFs (Save and Save As)
 - [ ] **GEN-02**: User can undo/redo all editing operations
-- [ ] **GEN-03**: Application respects Windows file associations (double-click PDF to open)
+- [x] **GEN-03**: Application respects Windows file associations (double-click PDF to open)
 
 ## v2 Requirements
 
@@ -79,8 +79,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| GEN-01 | Phase 1 | Pending |
-| GEN-03 | Phase 1 | Pending |
+| GEN-01 | Phase 1 | Complete |
+| GEN-03 | Phase 1 | Complete |
 | VIEW-01 | Phase 2 | Pending |
 | VIEW-02 | Phase 2 | Pending |
 | VIEW-03 | Phase 3 | Pending |
