@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-05-15)
 
 Phase: 1 of 8 (Foundation & Document Lifecycle)
 Plan: Complete
-Status: Phase complete
-Last activity: 2026-05-15 — Phase 1 complete (all 3 plans)
+Status: Phase shipped
+Last activity: 2026-05-15 — Phase 1 shipped (PR #1)
 
 Progress: [████████░░] 13%
 
