@@ -18,6 +18,7 @@
     "@electron-forge/maker-squirrel": "^7.7.0",
     "@electron-forge/plugin-fuses": "^7.7.0",
     "@electron/fuses": "^1.8.0",
+    "@types/winreg": "^1.2.36",
     "electron": "^33.0.0",
     "typescript": "^5.7.0"
   },
